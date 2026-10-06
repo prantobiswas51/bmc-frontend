@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+/*
+ * Palette taken from the reference dashboard. Contrast-checked:
+ * brand-600 carries white text (4.55:1) and orange text on white/cream;
+ * brand-500 is for graphics only (bars, gauge, 3.2:1 vs white).
+ */
+@theme {
+  --font-sans: var(--font-ubuntu), ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #fff6ef;
+  --color-brand-100: #fde9da;
+  --color-brand-200: #f9cfb2;
+  --color-brand-300: #f4ad84;
+  --color-brand-400: #ef8a57;
+  --color-brand-500: #e8692f;
+  --color-brand-600: #c94f17;
+  --color-brand-700: #a8410f;
+  --color-brand-800: #84330c;
+
+  --color-cream: #fdf7f2;
+  --color-line: #f1e2d6;
+  --color-ink: #2e2a27;
+  --color-muted: #756a63;
+  --color-good: #15803d;
+  --color-bad: #e11d48;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+/* Range inputs in brand colour everywhere. */
+input[type="range"] {
+  accent-color: var(--color-brand-600);
+}

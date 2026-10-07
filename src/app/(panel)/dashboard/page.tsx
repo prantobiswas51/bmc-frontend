@@ -15,7 +15,14 @@ import type { ActivityDay, Device } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-const dayLabel = (iso: string, long = false) =>
+const RANGES = [
+  { key: "month", label: "This month" },
+  { key: "prev", label: "Previous month" },
+  { key: "7", label: "Last 7 days" },
+  { key: "30", label: "Last 30 days" },
+];
+
+const dayLabel =(iso: string, long = false) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(
     "en-GB",
     long
@@ -49,15 +56,42 @@ export default async function DashboardPage({
   searchParams,
 }: PageProps<"/dashboard">) {
   const { org } = await requireOrg();
-  const days = (await searchParams).days === "30" ? 30 : 7;
-  const [allDevices, activity] = await Promise.all([
+  const param = (await searchParams).range;
+  const range = RANGES.some((r) => r.key === param) ? String(param) : "month";
+  const now = new Date();
+  const monthKey = (offset: number) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const query =
+    range === "month"
+      ? `month=${monthKey(0)}`
+      : range === "prev"
+        ? `month=${monthKey(-1)}`
+        : `days=${range}`;
+  const monthName = (offset: number) =>
+    new Date(now.getFullYear(), now.getMonth() + offset, 1).toLocaleDateString(
+      "en-GB",
+      { month: "long", year: "numeric" },
+    );
+  const [allDevices, activity, recent] = await Promise.all([
     api<Device[]>(`/orgs/${org.id}/devices`),
-    api<ActivityDay[]>(`/orgs/${org.id}/activity?days=${days}`),
+    api<ActivityDay[]>(`/orgs/${org.id}/activity?${query}`),
+    // Always the last two days, so "Commands today" ignores the chart range.
+    api<ActivityDay[]>(`/orgs/${org.id}/activity?days=2`),
   ]);
   const devices = allDevices.filter((d) => isSupported(d.typeKey));
   const online = devices.filter((d) => d.online).length;
   const syncing = devices.filter((d) => d.syncing).length;
-  const [yesterday, today] = activity.slice(-2).map((d) => d.commands);
+  const [yesterday, today] = recent.slice(-2).map((d) => d.commands);
+  const total = activity.reduce((sum, d) => sum + d.commands, 0);
+  const failed = activity.reduce((sum, d) => sum + d.failed, 0);
+  const subtitle =
+    range === "month"
+      ? monthName(0)
+      : range === "prev"
+        ? monthName(-1)
+        : `Last ${range} days`;
 
   const byLocation = Object.entries(
     devices.reduce<Record<string, number>>((acc, d) => {
@@ -113,20 +147,23 @@ export default async function DashboardPage({
                 <h2 id="activity-title" className={cardTitle}>
                   Device activity
                 </h2>
-                <p className="text-xs text-muted">Commands sent per day</p>
+                <p className="text-xs text-muted">
+                  {subtitle} · {total} command{total === 1 ? "" : "s"}
+                  {failed ? ` (${failed} failed)` : ""}
+                </p>
               </div>
               <nav
-                className="inline-flex rounded-xl border border-line bg-cream p-1 text-sm"
+                className="inline-flex flex-wrap rounded-xl border border-line bg-cream p-1 text-sm"
                 aria-label="Range"
               >
-                {[7, 30].map((d) => (
+                {RANGES.map((r) => (
                   <Link
-                    key={d}
-                    href={`/dashboard?days=${d}`}
-                    aria-current={days === d ? "page" : undefined}
-                    className={`rounded-lg px-3 py-1 ${days === d ? "bg-white font-medium text-brand-700 shadow-sm" : "text-muted hover:text-ink"}`}
+                    key={r.key}
+                    href={`/dashboard?range=${r.key}`}
+                    aria-current={range === r.key ? "page" : undefined}
+                    className={`rounded-lg px-3 py-1 ${range === r.key ? "bg-white font-medium text-brand-700 shadow-sm" : "text-muted hover:text-ink"}`}
                   >
-                    {d === 7 ? "Weekly" : "Monthly"}
+                    {r.label}
                   </Link>
                 ))}
               </nav>
@@ -136,7 +173,7 @@ export default async function DashboardPage({
               bars={activity.map((d) => ({
                 key: d.day,
                 label:
-                  days === 7
+                  range === "7"
                     ? new Date(`${d.day}T00:00:00`).toLocaleDateString(
                         "en-GB",
                         { weekday: "short" },

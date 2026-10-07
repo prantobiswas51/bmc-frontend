@@ -1,4 +1,5 @@
 import { Fan, Lightbulb } from "lucide-react";
+import Image from "next/image";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
@@ -24,12 +25,22 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
             <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15">
               <Fan className="h-6 w-6" />
             </span>
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-leaf-600">
               <Lightbulb className="h-6 w-6" />
             </span>
           </div>
         </div>
-        <div className="p-8 sm:p-10">{children}</div>
+        <div className="p-8 sm:p-10">
+          <Image
+            src="/bongomaker.png"
+            alt="BongoMaker"
+            width={188}
+            height={32}
+            priority
+            className="mb-8 h-8 w-auto"
+          />
+          {children}
+        </div>
       </div>
     </main>
   );

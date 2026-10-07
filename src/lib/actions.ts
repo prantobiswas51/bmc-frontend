@@ -253,6 +253,25 @@ export async function setPlatformRole(
   );
 }
 
+/** Super admin: deletes the device, its history and its MQTT account. */
+export async function deleteDevice(id: string) {
+  return attempt(() => api(`/admin/devices/${id}`, { method: "DELETE" }));
+}
+
+/** Next free hardware ID for a type (BM_MBL_00042). A suggestion; provisioning re-checks. */
+export async function nextHardwareId(
+  typeKey: string,
+): Promise<{ hardwareId?: string; error?: string }> {
+  try {
+    return await api<{ hardwareId: string }>(
+      `/admin/devices/next-id?${new URLSearchParams({ typeKey })}`,
+    );
+  } catch (error) {
+    if (error instanceof ApiError) return { error: error.message };
+    throw error;
+  }
+}
+
 export async function provisionDevice(
   _: ActionState,
   form: FormData,

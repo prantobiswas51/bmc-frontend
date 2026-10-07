@@ -8,21 +8,29 @@
 @theme {
   --font-sans: var(--font-ubuntu), ui-sans-serif, system-ui, sans-serif;
 
-  --color-brand-50: #fff6ef;
-  --color-brand-100: #fde9da;
-  --color-brand-200: #f9cfb2;
-  --color-brand-300: #f4ad84;
-  --color-brand-400: #ef8a57;
-  --color-brand-500: #e8692f;
-  --color-brand-600: #c94f17;
-  --color-brand-700: #a8410f;
-  --color-brand-800: #84330c;
+  /* BongoMaker logo purple (#54479f = 600) */
+  --color-brand-50: #f5f4f9;
+  --color-brand-100: #e7e5f2;
+  --color-brand-200: #ccc8e2;
+  --color-brand-300: #aaa3cf;
+  --color-brand-400: #7f75b7;
+  --color-brand-500: #6559a9;
+  --color-brand-600: #54479f;
+  --color-brand-700: #453a82;
+  --color-brand-800: #372e67;
 
-  --color-cream: #fdf7f2;
-  --color-line: #f1e2d6;
-  --color-ink: #2e2a27;
-  --color-muted: #756a63;
-  --color-good: #15803d;
+  /* BongoMaker logo green (#53863b = 600). Text on white uses 700+ (600 is 4.3:1). */
+  --color-leaf-50: #f5f8f3;
+  --color-leaf-100: #e7eee4;
+  --color-leaf-600: #53863b;
+  --color-leaf-700: #446e30;
+  --color-leaf-800: #365726;
+
+  --color-cream: #faf9fc;
+  --color-line: #eae9f3;
+  --color-ink: #27243a;
+  --color-muted: #6b6780;
+  --color-good: #446e30;
   --color-bad: #e11d48;
 }
 

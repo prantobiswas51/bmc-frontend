@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
-import { ProvisionForm } from "@/components/provision-form";
+import { DeleteDeviceButton, ProvisionForm } from "@/components/provision-form";
 import { DeviceStatus } from "@/components/status";
 import {
   badge,
@@ -12,15 +12,16 @@ import {
 } from "@/components/styles";
 import { api } from "@/lib/api";
 import { requireStaff } from "@/lib/context";
-import { DEVICE_TYPES, isSupported, timeAgo } from "@/lib/format";
-import type { AdminDevice } from "@/lib/types";
+import { timeAgo } from "@/lib/format";
+import type { AdminDevice, DeviceType } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Provisioning" };
 
 export default async function ProvisioningPage({
   searchParams,
 }: PageProps<"/admin/devices">) {
-  await requireStaff("super_admin", "developer");
+  const { me } = await requireStaff("super_admin", "developer");
+  const canDelete = me.platformRole === "super_admin";
   const params = await searchParams;
   const status =
     params.status === "claimed" || params.status === "unclaimed"
@@ -31,9 +32,11 @@ export default async function ProvisioningPage({
     ...(status && { status }),
     ...(search && { search }),
   });
-  const devices = (await api<AdminDevice[]>(`/admin/devices?${query}`)).filter(
-    (d) => isSupported(d.typeKey),
-  );
+  const [devices, types] = await Promise.all([
+    api<AdminDevice[]>(`/admin/devices?${query}`),
+    api<DeviceType[]>("/device-types"),
+  ]);
+  const typeName = new Map(types.map((t) => [t.key, t.name]));
 
   return (
     <div className="space-y-6">
@@ -46,7 +49,7 @@ export default async function ProvisioningPage({
           Creates the device record before it ships. The MQTT username is the
           hardware ID.
         </p>
-        <ProvisionForm />
+        <ProvisionForm types={types} />
       </section>
 
       <section
@@ -96,6 +99,11 @@ export default async function ProvisioningPage({
               <th className="px-3 py-3 font-medium">Status</th>
               <th className="px-3 py-3 font-medium">Firmware</th>
               <th className="px-5 py-3 text-right font-medium">Last seen</th>
+              {canDelete && (
+                <th className="px-5 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -103,7 +111,7 @@ export default async function ProvisioningPage({
               <tr key={d.id} className="border-b border-line last:border-0">
                 <td className="px-5 py-3 font-mono">{d.hardwareId}</td>
                 <td className="px-3 py-3 text-muted">
-                  {DEVICE_TYPES[d.typeKey as keyof typeof DEVICE_TYPES]}
+                  {typeName.get(d.typeKey) ?? d.typeKey}
                 </td>
                 <td className="px-3 py-3">
                   {d.orgName ?? (
@@ -119,11 +127,20 @@ export default async function ProvisioningPage({
                 <td className="px-5 py-3 text-right text-muted">
                   {timeAgo(d.lastSeenAt)}
                 </td>
+                {canDelete && (
+                  <td className="px-5 py-1 text-right">
+                    <DeleteDeviceButton
+                      id={d.id}
+                      hardwareId={d.hardwareId}
+                      orgName={d.orgName}
+                    />
+                  </td>
+                )}
               </tr>
             ))}
             {!devices.length && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-muted">
+                <td colSpan={7} className="px-5 py-8 text-center text-muted">
                   No devices match.
                 </td>
               </tr>

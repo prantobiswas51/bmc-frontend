@@ -129,7 +129,7 @@ export function Sidebar({
             <Link
               href="/devices?claim=1"
               onClick={() => setOpen(false)}
-              className="mt-3 inline-flex w-full justify-center rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              className="mt-3 inline-flex w-full justify-center rounded-xl bg-leaf-700 px-4 py-2 text-sm font-medium text-white hover:bg-leaf-800"
             >
               Claim device
             </Link>

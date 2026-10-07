@@ -2,7 +2,7 @@
 
 /** Card without padding (tables that run edge to edge). */
 export const surface =
-  "rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(46,42,39,0.04)]";
+  "rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(39,36,58,0.05)]";
 export const card = `${surface} p-5`;
 export const cardTitle = "text-lg font-medium text-brand-600";
 export const input =
@@ -24,6 +24,6 @@ export const badge = {
     "inline-flex items-center gap-1.5 rounded-full bg-cream px-2.5 py-0.5 text-xs font-medium text-muted",
   brand:
     "inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700",
-  good: "inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-good",
+  good: "inline-flex items-center gap-1.5 rounded-full bg-leaf-50 px-2.5 py-0.5 text-xs font-medium text-good",
   bad: "inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-bad",
 } as const;

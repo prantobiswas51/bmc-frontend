@@ -38,6 +38,13 @@ export interface Location {
 
 export type DeviceState = Record<string, unknown>;
 
+export interface DeviceType {
+  key: string;
+  name: string;
+  /** Hardware ID prefix used by provisioning, e.g. BM_MBL. */
+  idPrefix: string | null;
+}
+
 export interface Device {
   id: string;
   hardwareId: string;

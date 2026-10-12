@@ -239,6 +239,69 @@ const EFFECTS = [
   { key: "strobe", label: "Strobe" },
 ];
 
+function ColorPicker({
+  color,
+  disabled,
+  onPick,
+}: {
+  color: string;
+  disabled: boolean;
+  onPick: (color: string, delay?: number) => void;
+}) {
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <label
+          className="relative grid h-10 w-10 cursor-pointer place-items-center overflow-hidden rounded-full shadow ring-1 ring-line"
+          style={{
+            background:
+              "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)",
+          }}
+          title="Custom colour"
+        >
+          <span className="sr-only">Custom colour</span>
+          <Pipette
+            className="pointer-events-none relative z-10 h-4 w-4 text-white drop-shadow"
+            aria-hidden
+          />
+          <input
+            type="color"
+            value={color}
+            disabled={disabled}
+            onChange={(event) => onPick(event.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+        </label>
+        {SWATCHES.map((swatch) => (
+          <button
+            key={swatch}
+            type="button"
+            disabled={disabled}
+            aria-label={`Colour ${swatch}`}
+            aria-pressed={color.toLowerCase() === swatch}
+            onClick={() => onPick(swatch, 0)}
+            className={`h-8 w-8 rounded-full ring-offset-2 transition disabled:opacity-50 ${
+              color.toLowerCase() === swatch
+                ? "ring-2 ring-ink"
+                : "ring-1 ring-black/10"
+            }`}
+            style={{ background: swatch }}
+          />
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className="h-4 w-4 rounded-full ring-1 ring-black/10"
+          style={{ background: color }}
+          aria-hidden
+        />
+        <span className="font-mono text-sm">{color}</span>
+      </div>
+    </>
+  );
+}
+
+
 export function RgbBarControls({
   device,
   canControl,
@@ -252,6 +315,9 @@ export function RgbBarControls({
   const color = value("color", "#ff9500");
   const colorTemp = value("colorTemp", 4000);
   const brightness = value("brightness", 80);
+  const join = value("join", true);
+  const rightColor = value("rightColor", color);
+  const rightBrightness = value("rightBrightness", brightness);
   const [duration, setDuration] = useState(60);
   const [effectMessage, setEffectMessage] = useState<string>();
   const reported = device.reportedState;
@@ -306,57 +372,61 @@ export function RgbBarControls({
         </div>
       </Section>
 
+      <Section title="Sides">
+        <label className="flex cursor-pointer items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={join}
+            disabled={!canControl}
+            onChange={(event) =>
+              event.target.checked
+                ? change({ join: true }, 0)
+                : change(
+                    { join: false, rightColor: color, rightBrightness: brightness },
+                    0,
+                  )
+            }
+            className="h-4 w-4 accent-brand-600"
+          />
+          <span>Join both sides</span>
+        </label>
+        <p className="text-xs text-muted">
+          {join
+            ? "Left and right light up the same."
+            : "Left and right are set separately."}
+        </p>
+      </Section>
+
       {mode === "color" ? (
-        <Section title="Colour">
-          <div className="flex flex-wrap items-center gap-2">
-            <label
-              className="relative grid h-10 w-10 cursor-pointer place-items-center overflow-hidden rounded-full shadow ring-1 ring-line"
-              style={{
-                background:
-                  "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)",
-              }}
-              title="Custom colour"
-            >
-              <span className="sr-only">Custom colour</span>
-              <Pipette
-                className="pointer-events-none relative z-10 h-4 w-4 text-white drop-shadow"
-                aria-hidden
-              />
-              <input
-                type="color"
-                value={color}
-                disabled={!canControl}
-                onChange={(event) => change({ color: event.target.value })}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </label>
-            {SWATCHES.map((swatch) => (
-              <button
-                key={swatch}
-                type="button"
-                disabled={!canControl}
-                aria-label={`Colour ${swatch}`}
-                aria-pressed={color.toLowerCase() === swatch}
-                onClick={() => change({ color: swatch }, 0)}
-                className={`h-8 w-8 rounded-full ring-offset-2 transition disabled:opacity-50 ${
-                  color.toLowerCase() === swatch
-                    ? "ring-2 ring-ink"
-                    : "ring-1 ring-black/10"
-                }`}
-                style={{ background: swatch }}
-              />
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className="h-4 w-4 rounded-full ring-1 ring-black/10"
-              style={{ background: color }}
-              aria-hidden
+        join ? (
+          <Section title="Colour">
+            <ColorPicker
+              color={color}
+              disabled={!canControl}
+              onPick={(c, delay) => change({ color: c }, delay)}
             />
-            <span className="font-mono text-sm">{color}</span>
-          </div>
-          <Reported value={reported.color} />
-        </Section>
+            <Reported value={reported.color} />
+          </Section>
+        ) : (
+          <>
+            <Section title="Left colour">
+              <ColorPicker
+                color={color}
+                disabled={!canControl}
+                onPick={(c, delay) => change({ color: c }, delay)}
+              />
+              <Reported value={reported.color} />
+            </Section>
+            <Section title="Right colour">
+              <ColorPicker
+                color={rightColor}
+                disabled={!canControl}
+                onPick={(c, delay) => change({ rightColor: c }, delay)}
+              />
+              <Reported value={reported.rightColor} />
+            </Section>
+          </>
+        )
       ) : (
         <Section title="White">
           <Slider
@@ -400,19 +470,46 @@ export function RgbBarControls({
         </Section>
       )}
 
-      <Section title="Brightness">
-        <Slider
-          id="brightness"
-          label="Brightness"
-          min={0}
-          max={100}
-          value={brightness}
-          disabled={!canControl}
-          onChange={(v) => change({ brightness: v })}
-          format={(v) => `${v}%`}
-        />
-        <Reported value={reported.brightness} suffix="%" />
-      </Section>
+      {join ? (
+        <Section title="Brightness">
+          <Slider
+            id="brightness"
+            label="Brightness"
+            min={0}
+            max={100}
+            value={brightness}
+            disabled={!canControl}
+            onChange={(v) => change({ brightness: v })}
+            format={(v) => `${v}%`}
+          />
+          <Reported value={reported.brightness} suffix="%" />
+        </Section>
+      ) : (
+        <Section title="Brightness">
+          <Slider
+            id="brightness-left"
+            label="Left"
+            min={0}
+            max={100}
+            value={brightness}
+            disabled={!canControl}
+            onChange={(v) => change({ brightness: v })}
+            format={(v) => `${v}%`}
+          />
+          <Reported value={reported.brightness} suffix="%" />
+          <Slider
+            id="brightness-right"
+            label="Right"
+            min={0}
+            max={100}
+            value={rightBrightness}
+            disabled={!canControl}
+            onChange={(v) => change({ rightBrightness: v })}
+            format={(v) => `${v}%`}
+          />
+          <Reported value={reported.rightBrightness} suffix="%" />
+        </Section>
+      )}
 
       <Section title="Effects">
         <div className="flex flex-wrap items-center gap-2">

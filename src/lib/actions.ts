@@ -242,6 +242,18 @@ export async function sendCommand(
   );
 }
 
+/** Key for the device's local API (hotspot / LAN). Members and owners only. */
+export async function getLocalKey(
+  id: string,
+): Promise<{ key?: string; error?: string }> {
+  try {
+    return await api<{ key: string }>(`/devices/${id}/local-key`);
+  } catch (error) {
+    if (error instanceof ApiError) return { error: error.message };
+    throw error; // includes Next's redirect()
+  }
+}
+
 // --- platform staff ----------------------------------------------------------
 
 export async function setPlatformRole(

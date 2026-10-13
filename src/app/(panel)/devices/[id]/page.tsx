@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FanLedControls, RgbBarControls } from "@/components/device-controls";
+import { LocalKey } from "@/components/local-key";
 import { PageHeader } from "@/components/page-header";
 import { ReleaseDevice } from "@/components/release-device";
 import { DeviceStatus } from "@/components/status";
@@ -178,6 +179,8 @@ export default async function DevicePage({
               )}
             </ul>
           </section>
+
+          {canControl && <LocalKey deviceId={device.id} />}
 
           {isOwner && (
             <section

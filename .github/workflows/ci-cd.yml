@@ -64,6 +64,8 @@ jobs:
           PORT: ${{ secrets.VPS_PORT || '22' }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "$PORT" "$USER@$HOST" bash -ls <<EOF
+          export NVM_DIR="\$HOME/.nvm"
+          . "\$NVM_DIR/nvm.sh"
           set -euo pipefail
           cd "$APP_DIR"
           # Full install (not --omit=dev): next.config.ts needs typescript at start.
